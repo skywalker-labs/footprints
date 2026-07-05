@@ -1,26 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Skywalker\Footprints;
 
 use Illuminate\Http\Request;
-use Skywalker\Footprints\Jobs\TrackVisit;
 use Illuminate\Support\Facades\Auth;
+use Jenssegers\Agent\Agent;
+use Skywalker\Footprints\Jobs\TrackVisit;
 
 class TrackingLogger implements TrackingLoggerInterface
 {
     /**
-     * @var \Illuminate\Http\Request
-     */
-    protected $request;
-
-    /**
      * Create a new TrackingLogger instance.
-     *
-     * @param \Illuminate\Http\Request $request
      */
-    public function __construct(Request $request)
-    {
-        $this->request = $request;
+    public function __construct(
+        protected Request $request,
+        protected ?Agent $agent = null
+    ) {
+        $this->agent = $agent ?? new Agent();
+        $this->agent->setUserAgent((string) $this->request->userAgent());
     }
 
     /**
@@ -28,31 +27,33 @@ class TrackingLogger implements TrackingLoggerInterface
      */
     public function track(Request $request): Request
     {
-        $job = new TrackVisit($this->captureAttributionData(), Auth::user() ? Auth::user()->id : null);
+        $job = new TrackVisit($this->captureAttributionData(), Auth::user()?->getAuthIdentifier());
 
         if (config('footprints.async') == true) {
             dispatch($job);
         } else {
-            $job->handle(); // @phpstan-ignore-line
+            $job->handle();
         }
 
         return $request;
     }
 
     /**
-     * @return array
+     * @return array<string, mixed>
      */
     protected function captureAttributionData(): array
     {
         $attributes = array_merge(
             [
-                'footprint'         => $this->request->footprint(),
+                'footprint'         => $this->request->footprint(), // @phpstan-ignore-line
                 'ip'                => $this->captureIp(),
                 'landing_domain'    => $this->captureLandingDomain(),
                 'landing_page'      => $this->captureLandingPage(),
                 'landing_params'    => $this->captureLandingParams(),
                 'referral'          => $this->captureReferral(),
                 'gclid'             => $this->captureGCLID(),
+                'device_type'       => $this->captureDeviceType(),
+                'browser'           => $this->captureBrowser(),
             ],
             $this->captureUTM(),
             $this->captureReferrer(),
@@ -64,8 +65,27 @@ class TrackingLogger implements TrackingLoggerInterface
         }, $attributes);
     }
 
+    protected function captureDeviceType(): ?string
+    {
+        if ($this->agent?->isMobile()) {
+            return 'Mobile';
+        } elseif ($this->agent?->isTablet()) {
+            return 'Tablet';
+        } elseif ($this->agent?->isDesktop()) {
+            return 'Desktop';
+        }
+
+        return null;
+    }
+
+    protected function captureBrowser(): ?string
+    {
+        $browser = $this->agent?->browser();
+        return is_string($browser) && $browser !== '' ? $browser : null;
+    }
+
     /**
-     * @return array
+     * @return array<string, mixed>
      */
     protected function getCustomParameter(): array
     {
@@ -74,7 +94,9 @@ class TrackingLogger implements TrackingLoggerInterface
 
         if ($parameters && is_array($parameters)) {
             foreach ($parameters as $parameter) {
-                $arr[$parameter] = $this->request->input($parameter);
+                if (is_string($parameter)) {
+                    $arr[$parameter] = $this->request->input($parameter);
+                }
             }
         }
 
@@ -118,7 +140,7 @@ class TrackingLogger implements TrackingLoggerInterface
     }
 
     /**
-     * @return array
+     * @return array<string, mixed>
      */
     protected function captureUTM(): array
     {
@@ -134,7 +156,7 @@ class TrackingLogger implements TrackingLoggerInterface
     }
 
     /**
-     * @return array
+     * @return array<string, mixed>
      */
     protected function captureReferrer(): array
     {
@@ -143,7 +165,7 @@ class TrackingLogger implements TrackingLoggerInterface
         $referrer['referrer_url'] = $this->request->headers->get('referer');
 
         if ($referrer['referrer_url']) {
-            $parsedUrl = parse_url($referrer['referrer_url']);
+            $parsedUrl = parse_url((string) $referrer['referrer_url']);
             $referrer['referrer_domain'] = $parsedUrl['host'] ?? null;
         } else {
             $referrer['referrer_domain'] = null;
@@ -157,7 +179,8 @@ class TrackingLogger implements TrackingLoggerInterface
      */
     protected function captureGCLID(): ?string
     {
-        return $this->request->input('gclid');
+        $gclid = $this->request->input('gclid');
+        return is_string($gclid) ? $gclid : null;
     }
 
     /**
@@ -165,8 +188,7 @@ class TrackingLogger implements TrackingLoggerInterface
      */
     protected function captureReferral(): ?string
     {
-        return $this->request->input('ref');
+        $ref = $this->request->input('ref');
+        return is_string($ref) ? $ref : null;
     }
 }
-
-

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Skywalker\Footprints\Tests\Unit;
 
 use Skywalker\Footprints\Tests\TestCase;
@@ -11,7 +13,3 @@ class SanityTest extends TestCase
         $this->assertTrue(true);
     }
 }
-
-
-
-

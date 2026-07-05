@@ -1,15 +1,16 @@
 <?php
 
-use Illuminate\Database\Schema\Blueprint;
+declare(strict_types=1);
+
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateFootprintsTable extends Migration
-{
-
-    private function getConnectionName()
+return new class () extends Migration {
+    private function getConnectionName(): ?string
     {
-        return config('footprints.connection_name') ? config('footprints.connection_name') : config('database.default');
+        $conn = config('footprints.connection_name') ?: config('database.default');
+        return is_string($conn) ? $conn : null;
     }
 
     /**
@@ -19,10 +20,15 @@ class CreateFootprintsTable extends Migration
      */
     public function up()
     {
-        Schema::connection($this->getConnectionName())->create(config('footprints.table_name'), function (Blueprint $table) {
+        $tableName = config('footprints.table_name');
+        $tableName = is_string($tableName) ? $tableName : 'visits';
+
+        Schema::connection($this->getConnectionName())->create($tableName, function (Blueprint $table) {
 
             $table->increments('id');
-            $table->integer(config('footprints.column_name'))->unsigned()->nullable();
+            $columnName = config('footprints.column_name');
+            $columnName = is_string($columnName) ? $columnName : 'user_id';
+            $table->integer($columnName)->unsigned()->nullable();
             $table->string('footprint');
             $table->string('ip')->nullable();
             $table->string('landing_domain');
@@ -38,10 +44,15 @@ class CreateFootprintsTable extends Migration
             $table->string('utm_term')->nullable();
             $table->string('utm_content')->nullable();
             $table->string('referral')->nullable();
+            $table->string('device_type')->nullable();
+            $table->string('browser')->nullable();
 
-            if (config('footprints.custom_parameters')) {
-                foreach (config('footprints.custom_parameters') as $parameter) {
-                    $table->string($parameter)->nullable();
+            $parameters = config('footprints.custom_parameters');
+            if (is_array($parameters)) {
+                foreach ($parameters as $parameter) {
+                    if (is_string($parameter)) {
+                        $table->string($parameter)->nullable();
+                    }
                 }
             }
 
@@ -56,8 +67,9 @@ class CreateFootprintsTable extends Migration
      */
     public function down()
     {
-        Schema::connection($this->getConnectionName())->drop(config('footprints.table_name'));
+        $tableName = config('footprints.table_name');
+        $tableName = is_string($tableName) ? $tableName : 'visits';
+
+        Schema::connection($this->getConnectionName())->drop($tableName);
     }
-}
-
-
+};

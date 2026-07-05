@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Skywalker\Footprints\Console;
 
 use Illuminate\Console\Command;
@@ -26,7 +28,11 @@ class PruneCommand extends Command
      */
     public function handle(): int
     {
-        $days = (int) ($this->option('days') ?? config('footprints.attribution_duration') / (60 * 60 * 24));
+        $duration = config('footprints.attribution_duration');
+        $duration = is_numeric($duration) ? (int) $duration : 2592000;
+        
+        $daysOpt = $this->option('days');
+        $days = (int) ($daysOpt ?? ($duration / (60 * 60 * 24)));
 
         Visit::query()->prunable($days)->delete();
 
@@ -35,5 +41,3 @@ class PruneCommand extends Command
         return self::SUCCESS;
     }
 }
-
-

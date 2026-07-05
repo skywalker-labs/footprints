@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Skywalker\Footprints\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
@@ -8,7 +10,8 @@ use Skywalker\Footprints\TrackableInterface;
 
 class RegistrationTracked
 {
-    use Dispatchable, SerializesModels;
+    use Dispatchable;
+    use SerializesModels;
 
     /**
      * @var \Skywalker\Footprints\TrackableInterface
@@ -25,5 +28,3 @@ class RegistrationTracked
         $this->trackable = $trackable;
     }
 }
-
-

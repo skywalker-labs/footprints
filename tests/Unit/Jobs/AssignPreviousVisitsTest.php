@@ -1,14 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Skywalker\Footprints\Tests\Unit\Jobs;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Mockery\MockInterface;
 use Skywalker\Footprints\Events\RegistrationTracked;
 use Skywalker\Footprints\Jobs\AssignPreviousVisits;
 use Skywalker\Footprints\Tests\TestCase;
 use Skywalker\Footprints\TrackableInterface;
-use Mockery\MockInterface;
 
 class AssignPreviousVisitsTest extends TestCase
 {
@@ -16,11 +18,8 @@ class AssignPreviousVisitsTest extends TestCase
 
     public function test_emits_registration_tracked_event()
     {
-        /** @var TrackableInterface|\Mockery\MockInterface $trackable */
-        $trackable = $this->mock(TrackableInterface::class, function (MockInterface $mock) {
-            $mock->allows('getAttribute')->with('id')->andReturn(123);
-            $mock->id = 123;
-        });
+        $trackable = \Mockery::mock(\Illuminate\Database\Eloquent\Model::class . ',' . TrackableInterface::class);
+        $trackable->shouldReceive('getKey')->andReturn(123);
 
         Event::fake();
 
@@ -32,5 +31,3 @@ class AssignPreviousVisitsTest extends TestCase
         });
     }
 }
-
-

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Skywalker\Footprints;
 
 use Illuminate\Http\Request;
@@ -14,7 +16,3 @@ interface TrackingFilterInterface
      */
     public function shouldTrack(Request $request): bool;
 }
-
-
-
-

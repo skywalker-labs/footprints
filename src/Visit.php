@@ -1,8 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Skywalker\Footprints;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Visit extends Model
 {
@@ -16,7 +20,7 @@ class Visit extends Model
     /**
      * The attributes that aren't mass assignable.
      *
-     * @var array
+     * @var array<string>
      */
     protected $guarded = [];
 
@@ -32,51 +36,77 @@ class Visit extends Model
 
     /**
      * Override constructor to set the table name @ time of instantiation.
+     *
+     * @param array<string, mixed> $attributes
      */
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
 
-        $this->setTable(config('footprints.table_name'));
+        $tableName = config('footprints.table_name');
+        $this->setTable(is_string($tableName) ? $tableName : 'visits');
 
-        if (config('footprints.connection_name')) {
-            $this->setConnection(config('footprints.connection_name'));
+        $connectionName = config('footprints.connection_name');
+        if (is_string($connectionName) && $connectionName !== '') {
+            $this->setConnection($connectionName);
         }
     }
 
     /**
      * Get the account that owns the visit.
+     *
+     * @return BelongsTo<Model, $this>
      */
-    public function account(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function account(): BelongsTo
     {
-        $model = config('footprints.model');
+        /** @var class-string<Model> $model */
+        $model = config('footprints.model') ?: 'App\Models\User';
 
-        return $this->belongsTo($model, config('footprints.column_name'));
+        $columnName = config('footprints.column_name');
+        $columnName = is_string($columnName) ? $columnName : 'user_id';
+
+        return $this->belongsTo($model, $columnName);
     }
 
     /**
      * Scope a query to only include previous visits.
+     * 
+     * @param Builder<$this> $query
+     * @param string $footprint
+     * @return Builder<$this>
      */
-    public function scopePreviousVisits($query, $footprint)
+    public function scopePreviousVisits(Builder $query, string $footprint): Builder
     {
         return $query->where('footprint', $footprint);
     }
 
     /**
      * Scope a query to only include previous visits that have been unassigned.
+     * 
+     * @param Builder<$this> $query
+     * @param string $footprint
+     * @return Builder<$this>
      */
-    public function scopeUnassignedPreviousVisits($query, $footprint)
+    public function scopeUnassignedPreviousVisits(Builder $query, string $footprint): Builder
     {
-        return $query->whereNull(config('footprints.column_name'))->where('footprint', $footprint);
+        $columnName = config('footprints.column_name');
+        $columnName = is_string($columnName) ? $columnName : 'user_id';
+        
+        return $query->whereNull($columnName)->where('footprint', $footprint);
     }
 
     /**
      * Scope a query to only include unassigned visits older than $days days.
+     * 
+     * @param Builder<$this> $query
+     * @param int $days
+     * @return Builder<$this>
      */
-    public function scopePrunable($query, $days)
+    public function scopePrunable(Builder $query, int $days): Builder
     {
-        return $query->whereNull(config('footprints.column_name'))->where('created_at', '<=', today()->subDays($days));
+        $columnName = config('footprints.column_name');
+        $columnName = is_string($columnName) ? $columnName : 'user_id';
+        
+        return $query->whereNull($columnName)->where('created_at', '<=', today()->subDays($days));
     }
 }
-
-

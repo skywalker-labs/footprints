@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Skywalker\Footprints\Tests\Unit\Middleware;
 
 use Illuminate\Http\Request;
@@ -9,13 +11,12 @@ use Skywalker\Footprints\Tests\TestCase;
 use Skywalker\Footprints\TrackingFilterInterface;
 use Skywalker\Footprints\TrackingLoggerInterface;
 
-
 class CaptureAttributionDataMiddlewareTest extends TestCase
 {
     public function test_logs_when_filter_returns_true()
     {
-        $request = new Request;
-        $response = new Response;
+        $request = new Request();
+        $response = new Response();
 
         $trackingFilter = \Mockery::mock(TrackingFilterInterface::class);
         $trackingFilter->shouldReceive('shouldTrack')
@@ -36,8 +37,8 @@ class CaptureAttributionDataMiddlewareTest extends TestCase
 
     public function test_do_not_log_when_filter_returns_false()
     {
-        $request = new Request;
-        $response = new Response;
+        $request = new Request();
+        $response = new Response();
 
         $trackingFilter = \Mockery::mock(TrackingFilterInterface::class);
         $trackingFilter->shouldReceive('shouldTrack')
@@ -54,7 +55,3 @@ class CaptureAttributionDataMiddlewareTest extends TestCase
         }));
     }
 }
-
-
-
-

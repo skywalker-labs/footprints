@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Skywalker\Footprints\Jobs;
 
 use Illuminate\Bus\Queueable;
@@ -11,25 +13,15 @@ class TrackVisit implements ShouldQueue
     use Queueable;
 
     /**
-     * @var array
-     */
-    protected $attributionData;
-
-    /**
-     * @var mixed
-     */
-    public $trackableId;
-
-    /**
      * Create a new job instance.
      *
-     * @param array $attributionData
+     * @param array<string, mixed> $attributionData
      * @param mixed $trackableId
      */
-    public function __construct(array $attributionData, $trackableId = null)
-    {
-        $this->attributionData = $attributionData;
-        $this->trackableId = $trackableId;
+    public function __construct(
+        protected array $attributionData,
+        public mixed $trackableId = null
+    ) {
     }
 
     /**
@@ -37,10 +29,11 @@ class TrackVisit implements ShouldQueue
      */
     public function handle(): void
     {
+        $columnName = config('footprints.column_name');
+        $columnName = is_string($columnName) ? $columnName : 'user_id';
+
         Visit::query()->create(array_merge([
-            config('footprints.column_name') => $this->trackableId,
+            $columnName => $this->trackableId,
         ], $this->attributionData));
     }
 }
-
-

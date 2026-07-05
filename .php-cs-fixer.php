@@ -9,13 +9,14 @@ $finder = Symfony\Component\Finder\Finder::create()
     ->name('*.php')
     ->notName('*.blade.php');
 
-return PhpCsFixer\Config::create()
+return (new PhpCsFixer\Config())
     ->setRules([
-        '@PSR2' => true,
+        '@PSR12' => true,
         'array_syntax' => ['syntax' => 'short'],
-        'no_multiline_whitespace_before_semicolons' => true,
-        'ordered_imports' => ['sortAlgorithm' => 'alpha'],
+        'no_multiline_whitespace_around_double_arrow' => true,
+        'ordered_imports' => ['sort_algorithm' => 'alpha'],
         'no_unused_imports' => true,
         'not_operator_with_successor_space' => true,
+        'declare_strict_types' => true,
     ])
     ->setFinder($finder);

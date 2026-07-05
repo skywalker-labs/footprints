@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Skywalker\Footprints\Tests\Unit\Macros;
 
 use Skywalker\Footprints\Tests\TestCase;
@@ -16,5 +18,3 @@ class RequestFootprintMacroTest extends TestCase
         $this->assertNotEmpty($request->footprint());
     }
 }
-
-

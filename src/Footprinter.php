@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Skywalker\Footprints;
 
 use Illuminate\Http\Request;
@@ -9,16 +11,11 @@ use Illuminate\Support\Str;
 class Footprinter implements FootprinterInterface
 {
     /**
-     * @var string
-     */
-    protected $random;
-
-    /**
      * Create a new Footprinter instance.
      *
      * @param string $random
      */
-    public function __construct($random = '')
+    public function __construct(protected string $random = '')
     {
         $this->random = $random ?: Str::random(20); // Will only be set once during requests since this class is a singleton
     }
@@ -26,20 +23,28 @@ class Footprinter implements FootprinterInterface
     /** @inheritDoc */
     public function footprint(Request $request): string
     {
+        $cookieName = config('footprints.cookie_name');
+        $cookieName = is_string($cookieName) ? $cookieName : 'footprints';
 
-        if ($request->hasCookie(config('footprints.cookie_name'))) {
-            return (string) $request->cookie(config('footprints.cookie_name'));
+        if ($request->hasCookie($cookieName)) {
+            $val = $request->cookie($cookieName);
+            return is_string($val) ? $val : (is_array($val) ? json_encode($val) ?: '' : '');
         }
 
         $footprint = $this->fingerprint($request);
 
-        // This will add the cookie to the response
+        $duration = config('footprints.attribution_duration');
+        $duration = is_numeric($duration) ? (int) $duration : 2592000;
+
+        $domain = config('footprints.cookie_domain');
+        $domain = is_string($domain) ? $domain : null;
+
         Cookie::queue(
-            config('footprints.cookie_name'),
+            $cookieName,
             $footprint,
-            config('footprints.attribution_duration'),
+            $duration,
             null,
-            config('footprints.cookie_domain')
+            $domain
         );
 
         return $footprint;
@@ -63,5 +68,3 @@ class Footprinter implements FootprinterInterface
         ])));
     }
 }
-
-

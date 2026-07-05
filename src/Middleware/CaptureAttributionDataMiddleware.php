@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Skywalker\Footprints\Middleware;
 
 use Closure;
-
 use Illuminate\Http\Request;
 use Skywalker\Footprints\TrackingFilterInterface;
 use Skywalker\Footprints\TrackingLoggerInterface;
@@ -49,5 +50,3 @@ class CaptureAttributionDataMiddleware
         return $next($request);
     }
 }
-
-

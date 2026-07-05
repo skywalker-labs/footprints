@@ -38,15 +38,17 @@
         }
     ],
     "require": {
-        "php": "^7.4|^8.0",
+        "php": "^8.2",
         "illuminate/support": "^7.0|^8.0|^9.0|^10.0|^11.0|^12.0",
         "jaybizzle/crawler-detect": "^1.2",
-        "ermradulsharma/laravel-toolkit": "^1.0|^2.0"
+        "jenssegers/agent": "^2.6|^3.0",
+        "skywalker-labs/toolkit": "^1.0|^2.0"
     },
     "require-dev": {
         "orchestra/testbench": "^5.0|^6.0|^7.0|^8.0|^9.0|^10.0",
         "phpunit/phpunit": "^9.3|^10.0|^11.0",
-        "friendsofphp/php-cs-fixer": "^3.0"
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "larastan/larastan": "^3.10"
     },
     "autoload": {
         "psr-4": {
@@ -55,11 +57,28 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Skywalker\\Footprints\\Tests\\": "tests/"
+            "Skywalker\\Footprints\\Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Factories\\": "workbench/database/factories/",
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
         }
     },
     "scripts": {
-        "test": "phpunit"
+        "test": "phpunit",
+        "test-coverage": "phpunit --coverage-html coverage",
+        "analyse": "phpstan analyse",
+        "post-autoload-dump": [
+            "@clear",
+            "@prepare"
+        ],
+        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "prepare": "@php vendor/bin/testbench package:discover --ansi",
+        "build": "@php vendor/bin/testbench workbench:build --ansi",
+        "serve": [
+            "Composer\\Config::disableProcessTimeout",
+            "@build",
+            "@php vendor/bin/testbench serve --ansi"
+        ]
     },
     "extra": {
         "branch-alias": {

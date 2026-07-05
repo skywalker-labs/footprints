@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Skywalker\Footprints;
 
 use Illuminate\Http\Request;
@@ -18,5 +20,3 @@ interface TrackableInterface
      */
     public function trackRegistration(Request $request): void;
 }
-
-

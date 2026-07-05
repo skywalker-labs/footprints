@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Skywalker\Footprints;
 
 use Illuminate\Database\Eloquent\Model;
@@ -66,6 +68,44 @@ trait TrackRegistrationAttribution
     {
         return $this->hasMany(Visit::class, config('footprints.column_name'))->orderBy('created_at', 'desc')->first();
     }
+
+    /**
+     * Accessor for the first UTM campaign.
+     */
+    public function getFirstUtmCampaignAttribute(): ?string
+    {
+        return $this->initialAttributionData()?->utm_campaign;
+    }
+
+    /**
+     * Accessor for the last UTM campaign.
+     */
+    public function getLastUtmCampaignAttribute(): ?string
+    {
+        return $this->finalAttributionData()?->utm_campaign;
+    }
+
+    /**
+     * Accessor for the first UTM source.
+     */
+    public function getFirstUtmSourceAttribute(): ?string
+    {
+        return $this->initialAttributionData()?->utm_source;
+    }
+
+    /**
+     * Accessor for the last UTM source.
+     */
+    public function getLastUtmSourceAttribute(): ?string
+    {
+        return $this->finalAttributionData()?->utm_source;
+    }
+
+    /**
+     * Accessor for the primary device type (based on last touch).
+     */
+    public function getDeviceTypeAttribute(): ?string
+    {
+        return $this->finalAttributionData()?->device_type;
+    }
 }
-
-

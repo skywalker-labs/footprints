@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Skywalker\Footprints\Tests;
 
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
@@ -25,11 +27,11 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
 
     public function getEnvironmentSetUp($app)
     {
-        // import the CreateFootprintsTable class from the migration
-        require_once __DIR__ . '/../database/migrations/create_footprints_table.php';
+        // import the migration class from the migration file
+        $migration = require __DIR__ . '/../database/migrations/create_footprints_table.php';
 
         // run the up() method of that migration class
-        (new \CreateFootprintsTable)->up();
+        $migration->up();
     }
 
     /**
@@ -77,5 +79,3 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         return Request::createFromBase($symfonyRequest);
     }
 }
-
-

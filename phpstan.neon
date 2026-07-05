@@ -1,0 +1,12 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - src
+        - config
+        - database
+    level: 9
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        - '#Trait Skywalker\\Footprints\\TrackRegistrationAttribution is used zero times and is not analysed.#'

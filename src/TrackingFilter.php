@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Skywalker\Footprints;
 
 use Illuminate\Http\Request;
@@ -11,7 +13,9 @@ class TrackingFilter implements TrackingFilterInterface
     /**
      * Create a new TrackingFilter instance.
      */
-    public function __construct() {}
+    public function __construct()
+    {
+    }
 
     /**
      * Determine whether or not the request should be tracked.
@@ -22,7 +26,7 @@ class TrackingFilter implements TrackingFilterInterface
     public function shouldTrack(Request $request): bool
     {
         // Only track GET requests
-        if (!$request->isMethod('get')) {
+        if (! $request->isMethod('get')) {
             return false;
         }
 
@@ -50,7 +54,10 @@ class TrackingFilter implements TrackingFilterInterface
      */
     protected function disableOnAuthentication(): bool
     {
-        if (Auth::guard(config('footprints.guard'))->check() && config('footprints.disable_on_authentication')) {
+        $guard = config('footprints.guard');
+        $guard = is_string($guard) ? $guard : null;
+
+        if (Auth::guard($guard)->check() && config('footprints.disable_on_authentication')) {
             return true;
         }
 
@@ -59,13 +66,13 @@ class TrackingFilter implements TrackingFilterInterface
 
     protected function disableInternalLinks(Request $request): bool
     {
-        if (!config('footprints.disable_internal_links')) {
+        if (! config('footprints.disable_internal_links')) {
             return false;
         }
 
         $referer = (string) $request->headers->get('referer');
 
-        if (!$referer) {
+        if (! $referer) {
             return false;
         }
 
@@ -73,27 +80,27 @@ class TrackingFilter implements TrackingFilterInterface
         $referrer_domain = $parsedUrl['host'] ?? null;
         $request_domain = $request->getHost();
 
-        if (!$referrer_domain) {
+        if (! $referrer_domain) {
             return false;
         }
 
         // Normalize domains for comparison (simple check)
-        return strtolower($referrer_domain) === strtolower($request_domain);
+        return strtolower((string) $referrer_domain) === strtolower((string) $request_domain);
     }
 
     /**
      *
      * @param   string|null  $landing_page
-     * @return  bool|array
+     * @return  bool|array<int, string>
      */
-    protected function disabledLandingPages(?string $landing_page = null)
+    protected function disabledLandingPages(?string $landing_page = null): bool|array
     {
         $blacklist = (array) config('footprints.landing_page_blacklist');
 
         if ($landing_page) {
-            return in_array($landing_page, $blacklist);
+            return in_array($landing_page, $blacklist, true);
         } else {
-            return $blacklist;
+            return false;
         }
     }
 
@@ -115,8 +122,6 @@ class TrackingFilter implements TrackingFilterInterface
             return false;
         }
 
-        return (new CrawlerDetect())->isCrawler($request->header('User-Agent'));
+        return (new CrawlerDetect())->isCrawler((string) $request->header('User-Agent'));
     }
 }
-
-

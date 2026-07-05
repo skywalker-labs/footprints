@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Skywalker\Footprints\Tests\Unit;
 
 use Illuminate\Routing\Route;
@@ -34,7 +36,3 @@ class FootprinterTest extends TestCase
         $this->assertEquals($footprint1, $footprint2);
     }
 }
-
-
-
-
